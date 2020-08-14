@@ -9,6 +9,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Serilog;
 
 namespace Goodbye.WordPress
@@ -42,9 +43,7 @@ namespace Goodbye.WordPress
         public string ImagesOutputDirectory { get; }
         public string? ArchiveOutputFilePath { get; }
         public WordPressExporterDelegate Delegate { get; }
-
-        readonly ImmutableList<(Post, Post)> posts;
-        public IReadOnlyList<(Post Original, Post Processed)> Posts => posts;
+        public ImmutableList<(Post Original, Post Processed)> Posts { get; }
 
         WordPressExporter(
             IPostReader? postReader,
@@ -64,8 +63,7 @@ namespace Goodbye.WordPress
                 ?? Path.Combine(contentOutputDirectory, "images");
             ArchiveOutputFilePath = archiveOutputFilePath;
             Delegate = @delegate ?? new WordPressExporterDelegate();
-
-            this.posts = posts ?? ImmutableList<(Post, Post)>.Empty;
+            Posts = posts ?? ImmutableList<(Post, Post)>.Empty;
         }
 
         public static WordPressExporter Create(
@@ -95,7 +93,7 @@ namespace Goodbye.WordPress
                 ImagesOutputDirectory,
                 ArchiveOutputFilePath,
                 Delegate,
-                posts);
+                Posts);
 
         public WordPressExporter WithOutputFormat(OutputFormat outputFormat)
             => new WordPressExporter(
@@ -106,7 +104,7 @@ namespace Goodbye.WordPress
                 ImagesOutputDirectory,
                 ArchiveOutputFilePath,
                 Delegate,
-                posts);
+                Posts);
 
         public WordPressExporter WithBaseUri(Uri? baseUri)
             => new WordPressExporter(
@@ -117,7 +115,7 @@ namespace Goodbye.WordPress
                 ImagesOutputDirectory,
                 ArchiveOutputFilePath,
                 Delegate,
-                posts);
+                Posts);
 
         public WordPressExporter WithContentOutputDirectory(string outputDirectory)
             => new WordPressExporter(
@@ -128,7 +126,7 @@ namespace Goodbye.WordPress
                 ImagesOutputDirectory,
                 ArchiveOutputFilePath,
                 Delegate,
-                posts);
+                Posts);
 
         public WordPressExporter WithArchiveOutputFilePath(string filePath)
             => new WordPressExporter(
@@ -139,7 +137,7 @@ namespace Goodbye.WordPress
                 ImagesOutputDirectory,
                 filePath,
                 Delegate,
-                posts);
+                Posts);
 
         public WordPressExporter WithDelegate(WordPressExporterDelegate @delegate)
             => new WordPressExporter(
@@ -150,7 +148,7 @@ namespace Goodbye.WordPress
                 ImagesOutputDirectory,
                 ArchiveOutputFilePath,
                 @delegate,
-                posts);
+                Posts);
 
         public async Task<WordPressExporter> ExportAsync(
             CancellationToken cancellationToken = default)
