@@ -4,6 +4,7 @@
 
 using System;
 using System.Globalization;
+using System.Reflection;
 using System.Threading.Tasks;
 
 using Mono.Options;
@@ -16,8 +17,19 @@ namespace Goodbye.WordPress
 {
     public static class Program
     {
+        static readonly string version = typeof(Program)
+            .Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion ?? "0.0.0";
+        
+        static readonly string copyright = typeof(Program)
+            .Assembly
+            .GetCustomAttribute<AssemblyCopyrightAttribute>()
+            ?.Copyright ?? "";
+
         static int verbosity = 1;
         static bool showHelp;
+        static bool showVersion;
 
         static ConnectionStringBuilder connectionString = new ConnectionStringBuilder();
         static bool ignoreUnsupportedDatabaseVersions;
@@ -25,12 +37,18 @@ namespace Goodbye.WordPress
 
         static readonly OptionSet options = new OptionSet
         {
+            { $"Goodbye Wordpress v{version}" },
+            { copyright },
+            { "https://github.com/abock/goodbye-wordpress" },
+            { "" },
             { "usage: goodbye-wordpress [OPTIONS] [JSON_INPUT_FILE]" },
             { "" },
             { "Options:" },
             { "" },
             { "?|help", "Show this help",
                 v => showHelp = v != null },
+            { "version", "Show version",
+                v => showVersion = v != null },
             { "v|verbose", "Use verbose logging",
                 v => verbosity += v is null ? -1 : 1 },
             { "q|quiet", "Use quiet logging (errors only); synonym for -v-",
@@ -68,7 +86,7 @@ namespace Goodbye.WordPress
                 Console.ForegroundColor = ConsoleColor.DarkRed;
                 Console.Error.WriteLine($"error: {error ?? exception?.Message}");
                 Console.ResetColor();
-                if (verbosity > 0)
+                if (verbosity > 0 && exception != null)
                     Console.Error.WriteLine(exception);
                 Console.Error.WriteLine();
             }
@@ -98,6 +116,12 @@ namespace Goodbye.WordPress
 
                 if (showHelp)
                     return ShowHelp();
+                
+                if (showVersion)
+                {
+                    Console.WriteLine(version);
+                    return 1;
+                }
 
                 if (connectionString.IsConfigured)
                 {
