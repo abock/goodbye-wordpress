@@ -1,0 +1,30 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)_artifacts</PackageOutputPath>
+    <Authors>Aaron Bockover</Authors>
+    <Copyright>Copyright 2020 Aaron Bockover</Copyright>
+    <RepositoryUrl>https://github.com/abock/goodbye-wordpress</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>
+      WordPress;Export;Archive;Migrate;Migration;Blog;
+      JAMStack;Statiq;static;StaticSite;StaticContent
+    </PackageTags>
+    <PackageDescription>
+      Goodbye WordPress is a customizable library and command line tool for
+      exporting posts from a WordPress MySQL database to static Markdown or
+      HTML files, with YAML front-matter for metadata preservation. It is
+      intended as a starting point for migrating away from a WordPress blog
+      to a static site.
+      
+      It further supports saving images referenced in the original posts and
+      can generate a single-file archive of all exported posts in JSON format,
+      in case the export process needs to run again after the MySQL database
+      has been taken down.
+    </PackageDescription>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,6 @@
+/_artifacts/
+
+bin/
+obj/
+posts/
+*.json

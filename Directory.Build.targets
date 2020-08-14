@@ -1,0 +1,46 @@
+<Project>
+  <Target
+    Name="SetVersions"
+    BeforeTargets="GetAssemblyVersion;GetPackageVersion;InitializeSourceControlInformation"
+    Returns="Version;PackageVersion">
+    <Exec
+      Command="git for-each-ref --sort=taggerdate --format '%25(refname)' refs/tags"
+      ConsoleToMSBuild="true"
+      StandardOutputImportance="low">
+      <Output TaskParameter="ConsoleOutput" ItemName="GitOutput"/>
+    </Exec>
+    <ItemGroup>
+      <GitTag
+        Condition="$([System.Text.RegularExpressions.Regex]::IsMatch(%(Filename)%(Extension), '^v\d+\.\d+\.\d+(-\w+)?$'))"
+        Include="$([System.String]::Copy(%(GitOutput.Filename)%(GitOutput.Extension)).Substring(1))"/>
+    </ItemGroup>
+    <PropertyGroup>
+      <PackageVersion>%(GitTag.Identity)</PackageVersion>
+    </PropertyGroup>
+    <PropertyGroup>
+      <PackageVersion Condition="'$(PackageVersion)' == ''">0.0.0</PackageVersion>
+      <Version>$(PackageVersion)</Version>
+    </PropertyGroup>
+    <Message
+      Text="PackageVersion: $(PackageVersion)"
+      Importance="high"/>
+  </Target>
+
+  <Target
+    Name="SetPackageDescription"
+    BeforeTargets="GenerateNuspec"
+    Returns="PackageDescription">
+    <PropertyGroup>
+      <!-- Normalize \r\n to \n -->
+      <PackageDescription>$([System.Text.RegularExpressions.Regex]::Replace($(PackageDescription.Trim()), '\r\n', '&#10;'))</PackageDescription>
+      <!-- Strip leading space from each line -->
+      <PackageDescription>$([System.Text.RegularExpressions.Regex]::Replace($(PackageDescription), '^[\t ]+', '', System.Text.RegularExpressions.RegexOptions.Multiline))</PackageDescription>
+      <!-- Temporarily convert paragraph breaks (\n\n) to a placeholder (\r\r) --> 
+      <PackageDescription>$([System.Text.RegularExpressions.Regex]::Replace($(PackageDescription), '\n\n', '&#13;&#13;', System.Text.RegularExpressions.RegexOptions.Multiline))</PackageDescription>
+      <!-- Remaining \n should collapse into a single line -->
+      <PackageDescription>$([System.Text.RegularExpressions.Regex]::Replace($(PackageDescription), '\n', ' ', System.Text.RegularExpressions.RegexOptions.Multiline))</PackageDescription>
+      <!-- Convert placeholder \r\r back to \n\n -->
+      <PackageDescription>$([System.Text.RegularExpressions.Regex]::Replace($(PackageDescription), '\r', '&#10;', System.Text.RegularExpressions.RegexOptions.Multiline))</PackageDescription>
+    </PropertyGroup>
+  </Target>
+</Project>
