@@ -45,7 +45,15 @@ namespace Goodbye.WordPress
             string? originalPermalinkStructure = null;
 
             using var connection = new MySqlConnection(ConnectionString);
-            await connection.OpenAsync(cancellationToken);
+
+            try
+            {
+                await connection.OpenAsync(cancellationToken);
+            }
+            catch (Exception e)
+            {
+                throw new ConnectionFailedException(e);
+            }
 
             bool dbSupported = false;
             int dbVersion = 0;

@@ -86,7 +86,7 @@ namespace Goodbye.WordPress
                 Console.ForegroundColor = ConsoleColor.DarkRed;
                 Console.Error.WriteLine($"error: {error ?? exception?.Message}");
                 Console.ResetColor();
-                if (verbosity > 0 && exception != null)
+                if (verbosity > 1 && exception != null)
                     Console.Error.WriteLine(exception);
                 Console.Error.WriteLine();
             }
@@ -151,9 +151,26 @@ namespace Goodbye.WordPress
                 return ShowHelp(exception: e);
             }
 
-            exporter = await exporter
-                .WithPostReader(postReader)
-                .ExportAsync();
+            try
+            {
+                exporter = await exporter
+                    .WithPostReader(postReader)
+                    .ExportAsync();
+            }
+            catch (ConnectionFailedException e)
+            {
+                Log.Fatal(
+                    verbosity > 1 ? e : null,
+                    "Cannot connect to WordPress: {Message}",
+                    e.Message);
+            }
+            catch (Exception e)
+            {
+                Log.Fatal(
+                    e,
+                    "Failed to perform export process for an unknown reason: {Message}",
+                    e.Message);
+            }
 
             return 0;
         }
