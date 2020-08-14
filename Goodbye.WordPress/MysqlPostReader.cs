@@ -24,7 +24,7 @@ namespace Goodbye.WordPress
         static readonly HashSet<int> supportedDatabaseVersions = new HashSet<int>
         {
             // https://codex.wordpress.org/WordPress_Versions
-            38591, // 4.7 (December 6, 2016) through 4.9.15 (June 10, 2020)
+            38590, // 4.7 (December 6, 2016) through 4.9.15 (June 10, 2020)
         };
 
         public ConnectionStringBuilder ConnectionString { get; }
