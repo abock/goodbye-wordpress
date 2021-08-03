@@ -5,10 +5,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-
-using Newtonsoft.Json;
 
 namespace Goodbye.WordPress
 {
@@ -22,9 +22,16 @@ namespace Goodbye.WordPress
         public async IAsyncEnumerable<Post> ReadPostsAsync(
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
-            var serializer = JsonSerializer.CreateDefault();
-            var reader = new StreamReader(File.OpenRead(_jsonFile));
-            var posts = serializer.Deserialize<List<Post>>(new JsonTextReader(reader))
+            var posts = await JsonSerializer.DeserializeAsync<List<Post>>(
+                File.OpenRead(_jsonFile),
+                new JsonSerializerOptions
+                {
+                    Converters =
+                    {
+                        new JsonStringEnumConverter()
+                    }
+                },
+                cancellationToken)
                 ?? new List<Post>();
 
             foreach (var post in posts)

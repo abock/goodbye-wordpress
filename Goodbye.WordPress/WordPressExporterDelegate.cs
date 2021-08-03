@@ -8,60 +8,39 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Serilog;
-
-using Newtonsoft.Json;
+using Serilog.Events;
 
 using SharpYaml.Serialization;
-using System.Net;
-using Serilog.Events;
 
 namespace Goodbye.WordPress
 {
     public class WordPressExporterDelegate
     {
-        sealed class PostResourceDownloadStatusConverter : JsonConverter<PostResourceDownloadStatus>
-        {
-            public override PostResourceDownloadStatus ReadJson(
-                JsonReader reader,
-                Type objectType,
-                PostResourceDownloadStatus existingValue,
-                bool hasExistingValue,
-                JsonSerializer serializer)
-                => PostResourceDownloadStatus.NotAttempted;
-
-            public override void WriteJson(
-                JsonWriter writer,
-                PostResourceDownloadStatus value,
-                JsonSerializer serializer)
-                => writer.WriteValue((value == PostResourceDownloadStatus.AlreadyDownloaded
-                    ? PostResourceDownloadStatus.Succeeded
-                    : value)
-                    .ToString());
-        }
-
         public static Encoding Utf8NoBomEncoding { get; } = new UTF8Encoding(false);
 
-        protected virtual HttpClient HttpClient { get; } = new HttpClient(
+        protected virtual HttpClient HttpClient { get; } = new(
             new HttpClientHandler
             {
                 AllowAutoRedirect = true
             });
 
-        protected virtual JsonSerializerSettings JsonSerializerSettings { get; } = new JsonSerializerSettings
+        protected virtual JsonSerializerOptions JsonSerializerOptions { get; } = new()
         {
-            Formatting = Formatting.Indented,
-            NullValueHandling = NullValueHandling.Ignore,
-            DefaultValueHandling = DefaultValueHandling.Ignore,
+            WriteIndented = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull | JsonIgnoreCondition.WhenWritingDefault,
             Converters =
             {
-                new PostResourceDownloadStatusConverter()
+                new JsonStringEnumConverter()
             }
         };
 
@@ -102,9 +81,9 @@ namespace Goodbye.WordPress
 
             File.WriteAllText(
                 exporter.ArchiveOutputFilePath,
-                JsonConvert.SerializeObject(
+                JsonSerializer.Serialize(
                     exporter.Posts.Select(post => WriteArchivePostSelector(exporter, post)),
-                    JsonSerializerSettings),
+                    JsonSerializerOptions),
                 Utf8NoBomEncoding);
         }
 
