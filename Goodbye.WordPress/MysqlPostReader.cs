@@ -21,7 +21,7 @@ namespace Goodbye.WordPress
 {
     public sealed class MysqlPostReader : IPostReader
     {
-        static readonly HashSet<int> supportedDatabaseVersions = new HashSet<int>
+        static readonly HashSet<int> s_supportedDatabaseVersions = new()
         {
             // https://codex.wordpress.org/WordPress_Versions
             38590, // 4.7 (December 6, 2016) through 4.9.15 (June 10, 2020)
@@ -55,17 +55,17 @@ namespace Goodbye.WordPress
                 throw new ConnectionFailedException(e);
             }
 
-            bool dbSupported = false;
-            int dbVersion = 0;
+            var dbSupported = false;
+            var dbVersion = 0;
 
             try
             {
                 dbSupported = await new MySqlCommand(
                     "SELECT option_value FROM wp_options WHERE option_name = 'db_version'",
-                    connection).ExecuteScalarAsync()
+                    connection).ExecuteScalarAsync(cancellationToken)
                     is string dbVersionString &&
                     int.TryParse(dbVersionString, out dbVersion) &&
-                    supportedDatabaseVersions.Contains(dbVersion);
+                    s_supportedDatabaseVersions.Contains(dbVersion);
             }
             catch
             {
@@ -74,7 +74,7 @@ namespace Goodbye.WordPress
             if (!dbSupported)
             {
                 var e = new WordPressDbNotSupportedException(
-                    supportedDatabaseVersions
+                    s_supportedDatabaseVersions
                         .OrderByDescending(v => v)
                         .ToArray(),
                     dbVersion);
@@ -89,7 +89,7 @@ namespace Goodbye.WordPress
             {
                 if (await new MySqlCommand(
                     "SELECT option_value FROM wp_options WHERE option_name = 'permalink_structure'",
-                    connection).ExecuteScalarAsync()
+                    connection).ExecuteScalarAsync(cancellationToken)
                     is string permalinkStructure &&
                     permalinkStructure.Length > 0)
                     originalPermalinkStructure = permalinkStructure;
@@ -173,7 +173,8 @@ namespace Goodbye.WordPress
                         originalPermalinkStructure,
                         date.Value,
                         postId,
-                        postName));
+                        postName),
+                    ImmutableList<PostResource>.Empty);
             }
         }
 
@@ -192,27 +193,18 @@ namespace Goodbye.WordPress
                 match =>
                 {
                     var key = match.Groups["key"].Value;
-                    switch (key.ToLowerInvariant())
+                    return key.ToLowerInvariant() switch
                     {
-                        case "year":
-                            return $"{date:yyyy}";
-                        case "monthnum":
-                            return $"{date:MM}";
-                        case "day":
-                            return $"{date:dd}";
-                        case "hour":
-                            return $"{date:HH}";
-                        case "minute":
-                            return $"{date:mm}";
-                        case "second":
-                            return $"{date:ss}";
-                        case "post_id":
-                            return id.ToString(CultureInfo.InvariantCulture);
-                        case "postname":
-                            return name;
-                        default:
-                            return key;
-                    }
+                        "year" => $"{date:yyyy}",
+                        "monthnum" => $"{date:MM}",
+                        "day" => $"{date:dd}",
+                        "hour" => $"{date:HH}",
+                        "minute" => $"{date:mm}",
+                        "second" => $"{date:ss}",
+                        "post_id" => id.ToString(CultureInfo.InvariantCulture),
+                        "postname" => name,
+                        _ => key,
+                    };
                 });
         }
     }

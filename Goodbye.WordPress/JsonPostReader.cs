@@ -14,18 +14,16 @@ namespace Goodbye.WordPress
 {
     public sealed class JsonPostReader : IPostReader
     {
-        readonly string jsonFile;
+        readonly string _jsonFile;
 
         public JsonPostReader(string jsonFile)
-        {
-            this.jsonFile = jsonFile;
-        }
+            => _jsonFile = jsonFile;
 
         public async IAsyncEnumerable<Post> ReadPostsAsync(
             [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             var serializer = JsonSerializer.CreateDefault();
-            var reader = new StreamReader(File.OpenRead(jsonFile));
+            var reader = new StreamReader(File.OpenRead(_jsonFile));
             var posts = serializer.Deserialize<List<Post>>(new JsonTextReader(reader))
                 ?? new List<Post>();
 

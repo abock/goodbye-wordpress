@@ -15,7 +15,7 @@ namespace Goodbye.WordPress
         Failed
     }
 
-    public sealed class PostResource
+    public sealed record PostResource
     {
         public string OriginalUrl { get; }
         public string PostRelativePath { get; }
@@ -37,7 +37,7 @@ namespace Goodbye.WordPress
         public PostResource WithDownloadStatus(
             PostResourceDownloadStatus downloadStatus,
             ImmutableList<Uri>? attemptedDownloadUris = null)
-            => new PostResource(
+            => new(
                 OriginalUrl,
                 PostRelativePath,
                 downloadStatus,

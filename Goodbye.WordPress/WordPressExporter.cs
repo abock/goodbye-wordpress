@@ -22,11 +22,11 @@ namespace Goodbye.WordPress
         Markdown,
     }
 
-    public sealed class WordPressExporter
+    public sealed record WordPressExporter
     {
         sealed class NullPostReader : IPostReader
         {
-            public static readonly NullPostReader Instance = new NullPostReader();
+            public static readonly NullPostReader Instance = new();
 
             public async IAsyncEnumerable<Post> ReadPostsAsync(
                 [EnumeratorCancellation] CancellationToken cancellationToken = default)
@@ -36,14 +36,14 @@ namespace Goodbye.WordPress
             }
         }
 
-        public IPostReader PostReader { get; }
-        public OutputFormat OutputFormat { get; }
-        public Uri? BaseUri { get; }
-        public string ContentOutputDirectory { get; }
-        public string ImagesOutputDirectory { get; }
-        public string? ArchiveOutputFilePath { get; }
-        public WordPressExporterDelegate Delegate { get; }
-        public ImmutableList<(Post Original, Post Processed)> Posts { get; }
+        public IPostReader PostReader { get; init; }
+        public OutputFormat OutputFormat { get; init; }
+        public Uri? BaseUri { get; init; }
+        public string ContentOutputDirectory { get; init; }
+        public string ImagesOutputDirectory { get; init; }
+        public string? ArchiveOutputFilePath { get; init; }
+        public WordPressExporterDelegate Delegate { get; init; }
+        public ImmutableList<(Post Original, Post Processed)> Posts { get; init; }
 
         WordPressExporter(
             IPostReader? postReader,
@@ -73,7 +73,7 @@ namespace Goodbye.WordPress
             string? contentOutputDirectory = null,
             string? archiveOutputFilePath = null,
             WordPressExporterDelegate? @delegate = null)
-            => new WordPressExporter(
+            => new(
                 postReader,
                 outputFormat,
                 baseUri,
@@ -84,72 +84,6 @@ namespace Goodbye.WordPress
                 @delegate,
                 null);
 
-        public WordPressExporter WithPostReader(IPostReader? postReader)
-            => new WordPressExporter(
-                postReader,
-                OutputFormat,
-                BaseUri,
-                ContentOutputDirectory,
-                ImagesOutputDirectory,
-                ArchiveOutputFilePath,
-                Delegate,
-                Posts);
-
-        public WordPressExporter WithOutputFormat(OutputFormat outputFormat)
-            => new WordPressExporter(
-                PostReader,
-                outputFormat,
-                BaseUri,
-                ContentOutputDirectory,
-                ImagesOutputDirectory,
-                ArchiveOutputFilePath,
-                Delegate,
-                Posts);
-
-        public WordPressExporter WithBaseUri(Uri? baseUri)
-            => new WordPressExporter(
-                PostReader,
-                OutputFormat,
-                baseUri,
-                ContentOutputDirectory,
-                ImagesOutputDirectory,
-                ArchiveOutputFilePath,
-                Delegate,
-                Posts);
-
-        public WordPressExporter WithContentOutputDirectory(string outputDirectory)
-            => new WordPressExporter(
-                PostReader,
-                OutputFormat,
-                BaseUri,
-                outputDirectory,
-                ImagesOutputDirectory,
-                ArchiveOutputFilePath,
-                Delegate,
-                Posts);
-
-        public WordPressExporter WithArchiveOutputFilePath(string filePath)
-            => new WordPressExporter(
-                PostReader,
-                OutputFormat,
-                BaseUri,
-                ContentOutputDirectory,
-                ImagesOutputDirectory,
-                filePath,
-                Delegate,
-                Posts);
-
-        public WordPressExporter WithDelegate(WordPressExporterDelegate @delegate)
-            => new WordPressExporter(
-                PostReader,
-                OutputFormat,
-                BaseUri,
-                ContentOutputDirectory,
-                ImagesOutputDirectory,
-                ArchiveOutputFilePath,
-                @delegate,
-                Posts);
-
         public async Task<WordPressExporter> ExportAsync(
             CancellationToken cancellationToken = default)
         {
@@ -159,15 +93,15 @@ namespace Goodbye.WordPress
             var posts = ImmutableList.CreateBuilder<(Post, Post)>();
             var resources = ImmutableList.CreateBuilder<PostResource>();
 
-            await foreach (var originalPost in PostReader.ReadPostsAsync())
+            await foreach (var originalPost in PostReader.ReadPostsAsync(cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var processedPost = Delegate.ProcessPost(this, originalPost);
 
                 var outputPath = Path.ChangeExtension(
-                        Delegate.GetOutputPath(this, processedPost),
-                        Delegate.GetFileExtension(this));
+                    Delegate.GetOutputPath(this, processedPost),
+                    Delegate.GetFileExtension(this));
 
                 using var writer = Delegate.GetStreamWriter(
                     this,
@@ -190,16 +124,27 @@ namespace Goodbye.WordPress
                 var updatedResources = ImmutableList.CreateBuilder<PostResource>();
 
                 foreach (var resource in processedPost.Resources)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     updatedResources.Add(
                         await Delegate.DownloadResourceAsync(
                             this,
                             processedPost,
-                            resource));
+                            resource,
+                            cancellationToken));
+                }
 
-                processedPost = processedPost.WithResources(updatedResources.ToImmutable());
+                processedPost = processedPost with
+                {
+                    Resources = updatedResources.ToImmutable()
+                };
 
                 posts.Add((
-                    originalPost.WithResources(processedPost.Resources),
+                    originalPost with
+                    {
+                        Resources = processedPost.Resources,
+                    },
                     processedPost));
             }
 

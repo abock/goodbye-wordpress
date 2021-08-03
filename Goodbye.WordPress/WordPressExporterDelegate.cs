@@ -81,7 +81,7 @@ namespace Goodbye.WordPress
             WordPressExporter exporter,
             Post post,
             string path)
-            => new StreamWriter(
+            => new(
                 path,
                 false,
                 Utf8NoBomEncoding)
@@ -135,7 +135,7 @@ namespace Goodbye.WordPress
         {
             var resources = new List<PostResource>();
 
-            post = post.WithContent(Regex.Replace(
+            post = post with { Content = Regex.Replace(
                 post.Content,
                 @"(<img src=['""]?)([^'"">]+)",
                 match =>
@@ -153,7 +153,7 @@ namespace Goodbye.WordPress
                     resources.Add(new PostResource(src, relPath));
 
                     return match.Groups["1"].Value + relPath;
-                }));
+                }) };
 
             if (resources.Count > 0)
             {
@@ -162,7 +162,7 @@ namespace Goodbye.WordPress
                     updatedResources = updatedResources
                         .RemoveAll(old => old.OriginalUrl == newResource.OriginalUrl)
                         .Add(newResource);
-                post = post.WithResources(updatedResources);
+                post = post with { Resources =  updatedResources };
             }
 
             return post;
@@ -194,16 +194,15 @@ namespace Goodbye.WordPress
                     inPre = false;
             }
 
-            return post.WithContent(html.ToString().Trim());
+            return post with { Content = html.ToString().Trim() };
         }
 
         public virtual Post ConvertToMarkdown(
             WordPressExporter exporter,
             Post post)
-            => post.WithContent(
-                new ReverseMarkdown.Converter()
-                    .Convert(post.Content)
-                    .Trim());
+            => post with { Content = new ReverseMarkdown.Converter()
+                .Convert(post.Content)
+                .Trim() };
 
         public virtual void WritePost(
             WordPressExporter exporter,
@@ -363,7 +362,7 @@ namespace Goodbye.WordPress
 
                     using var httpStream = await httpResponse
                         .Content
-                        .ReadAsStreamAsync();
+                        .ReadAsStreamAsync(cancellationToken);
 
                     using var fileStream = File.OpenWrite(fullPath);
 

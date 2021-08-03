@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -11,8 +10,8 @@
     <PackageDescription>
       $(PackageDescription)
       
-      Note, there is a .NET Standard 2.1 library ("Goodbye.WordPress") that
-      can be integrated easily into a new .NET Core console application that
+      Note, there is a .NET 5.0 library ("Goodbye.WordPress") that
+      can be integrated easily into a new .NET console application that
       allows heavy customization through overriding pieces of the export
       pipeline in WordPressExporterDelegate.
     </PackageDescription>

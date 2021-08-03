@@ -126,10 +126,11 @@ namespace Goodbye.WordPress
             if (string.IsNullOrEmpty(key))
                 throw new ArgumentNullException(nameof(key));
 
-            RemoveParameter(key);
+            if (string.IsNullOrEmpty(value))
+                throw new ArgumentNullException(nameof(value));
 
-            if (value is string)
-                Parameters = Parameters.Add((key, value));
+            RemoveParameter(key);
+            Parameters = Parameters.Add((key, value));
         }
 
         public void RemoveParameter(string key)
