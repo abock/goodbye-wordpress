@@ -54,7 +54,7 @@ namespace Goodbye.WordPress
             Post post)
             => Path.Combine(
                 exporter.ContentOutputDirectory,
-                $"{post.Date:yyyy-MM-dd}-{post.Name}");
+                $"{post.Published:yyyy-MM-dd}-{post.Name}");
 
         public virtual StreamWriter GetStreamWriter(
             WordPressExporter exporter,
@@ -230,15 +230,19 @@ namespace Goodbye.WordPress
             Post post,
             YamlMappingNode rootNode)
         {
+            void AddDateField(string name, DateTimeOffset? date)
+            {
+                if (date.HasValue)
+                    rootNode.Add(name, date.Value.ToString(
+                        "yyyy-MM-dd HH:mm:ss zzz",
+                        CultureInfo.InvariantCulture));
+            }
+
             if (!string.IsNullOrEmpty(post.Title))
                 rootNode.Add(nameof(Post.Title), post.Title);
 
-            if (post.Date.HasValue)
-                rootNode.Add(
-                    nameof(Post.Date),
-                    post.Date.Value.ToString(
-                        "yyyy-MM-dd HH:mm:ss zzz",
-                        CultureInfo.InvariantCulture));
+            AddDateField(nameof(Post.Published), post.Published);
+            AddDateField(nameof(Post.Updated), post.Updated);
 
             if (!string.IsNullOrEmpty(post.Category))
                 rootNode.Add(
@@ -256,10 +260,12 @@ namespace Goodbye.WordPress
                     nameof(Post.Status),
                     post.Status);
 
-            if (!string.IsNullOrEmpty(post.OriginalUrl))
+            if (post.RedirectFrom.Count > 0)
+                // https://statiq.dev/web/content-and-data/content/redirects
                 rootNode.Add(
-                    nameof(Post.OriginalUrl),
-                    post.OriginalUrl);
+                    nameof(Post.RedirectFrom),
+                    new YamlSequenceNode(
+                        post.RedirectFrom.Select(r => new YamlScalarNode(r))));
         }
 
         public virtual IEnumerable<Uri> GetDownloadResourceUris(

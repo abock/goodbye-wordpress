@@ -10,12 +10,13 @@ namespace Goodbye.WordPress
     public sealed record Post(
         int Id,
         string? Status,
-        DateTimeOffset? Date,
+        DateTimeOffset? Published,
+        DateTimeOffset? Updated,
         string Name,
         string Title,
         string? Category,
         ImmutableList<string> Tags,
         string Content,
-        string? OriginalUrl,
+        ImmutableList<string> RedirectFrom,
         ImmutableList<PostResource> Resources);
 }

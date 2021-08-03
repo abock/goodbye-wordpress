@@ -116,7 +116,7 @@ namespace Goodbye.WordPress
 
                 Log.Information("Post {Title} ({Date}) → {Path}",
                     processedPost.Title,
-                    processedPost.Date,
+                    processedPost.Published,
                     Path.GetRelativePath(
                         Environment.CurrentDirectory,
                         outputPath));

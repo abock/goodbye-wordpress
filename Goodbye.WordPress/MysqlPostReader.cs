@@ -102,8 +102,10 @@ namespace Goodbye.WordPress
                 SELECT
                     p.id AS ID,
                     p.post_status AS Status,
-                    p.post_date AS LocalDate,
-                    p.post_date_gmt AS UtcDate,
+                    p.post_date AS PublishedLocalDate,
+                    p.post_date_gmt AS PublishedUtcDate,
+                    p.post_modified AS UpdatedLocalDate,
+                    p.post_modified_gmt AS UpdatedUtcDate,
                     p.post_name AS Name,
                     p.post_title AS Title,
                     c.name AS Category,
@@ -139,21 +141,30 @@ namespace Goodbye.WordPress
 
                 var postId = reader.GetInt32("ID");
 
-                var localDate = reader.GetDateTime("LocalDate");
-                var utcDate = reader.GetDateTime("UtcDate");
-                var date = localDate > DateTime.MinValue && utcDate> DateTime.MinValue
-                    ? new DateTimeOffset(localDate, localDate - utcDate)
-                    : (DateTimeOffset?)null;
+                var publishedDate = ParseDate(
+                    reader.GetDateTime("PublishedLocalDate"),
+                    reader.GetDateTime("PublishedUtcDate"));
 
-                if (date is null)
+                var updatedDate = ParseDate(
+                    reader.GetDateTime("UpdatedLocalDate"),
+                    reader.GetDateTime("UpdatedUtcDate"));
+
+                if (publishedDate is null)
                     continue;
 
                 var postName = reader.GetString("Name");
 
+                var originalUrl = ExpandPermalinkStructure(
+                    originalPermalinkStructure,
+                    publishedDate.Value,
+                    postId,
+                    postName);
+
                 yield return new Post(
                     postId,
                     reader.GetString("Status"),
-                    date,
+                    publishedDate,
+                    updatedDate,
                     postName,
                     reader.GetString("Title"),
                     reader.GetString("Category") is string category &&
@@ -169,14 +180,17 @@ namespace Goodbye.WordPress
                         .Distinct()
                         .ToImmutableList(),
                     reader.GetString("Content"),
-                    ExpandPermalinkStructure(
-                        originalPermalinkStructure,
-                        date.Value,
-                        postId,
-                        postName),
+                    originalUrl is null
+                        ? ImmutableList<string>.Empty
+                        : ImmutableList.Create(originalUrl),
                     ImmutableList<PostResource>.Empty);
             }
         }
+
+        static DateTimeOffset? ParseDate(DateTime localDate, DateTime utcDate)
+            => localDate > DateTime.MinValue && utcDate > DateTime.MinValue
+                ? new DateTimeOffset(localDate, localDate - utcDate)
+                : null;
 
         static string? ExpandPermalinkStructure(
             string? originalPermalinkStructure,
