@@ -79,6 +79,12 @@ namespace Goodbye.WordPress
             set => this[nameof(Database)] = value;
         }
 
+        public string? TlsVersion
+        {
+            get => this[nameof(TlsVersion)];
+            set => this[nameof(TlsVersion)] = "TLS " + value;
+        }
+
 
         static bool KeyEquals(string a, string b)
             => string.Equals(a, b, StringComparison.OrdinalIgnoreCase);
