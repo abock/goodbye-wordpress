@@ -1,6 +1,6 @@
 # Goodbye WordPress
 
-[![.NET Core](https://github.com/abock/goodbye-wordpress/workflows/.NET%20Core/badge.svg)](https://github.com/abock/goodbye-wordpress/actions?query=workflow%3A%22.NET+Core%22)
+[![.NET](https://github.com/abock/goodbye-wordpress/actions/workflows/dotnet.yml/badge.svg)](https://github.com/abock/goodbye-wordpress/actions/workflows/dotnet.yml)
 [![NuGet Badge](https://buildstats.info/nuget/goodbye-wordpress)](https://www.nuget.org/packages/goodbye-wordpress/)
 [![NuGet Badge](https://buildstats.info/nuget/Goodbye.WordPress)](https://www.nuget.org/packages/Goodbye.WordPress/)
 [![License](https://img.shields.io/badge/license-MIT%20License-blue.svg)](LICENSE)
