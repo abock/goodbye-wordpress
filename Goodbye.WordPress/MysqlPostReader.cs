@@ -108,25 +108,29 @@ namespace Goodbye.WordPress
                     p.post_modified_gmt AS UpdatedUtcDate,
                     p.post_name AS Name,
                     p.post_title AS Title,
-                    c.name AS Category,
-                    GROUP_CONCAT(
-                        DISTINCT t.name
-                        SEPARATOR ';') AS Tags,
+                    COALESCE(
+                        GROUP_CONCAT(DISTINCT c.name SEPARATOR ';'), 
+                        'NULL'
+                    ) AS Category, 
+                    COALESCE(
+                        GROUP_CONCAT(DISTINCT t.name SEPARATOR ';'), 
+                        'NULL'
+                    ) AS Tags, 
                     p.post_content AS Content
                 FROM wp_posts p
-                JOIN wp_term_relationships cr
+                LEFT JOIN wp_term_relationships cr
                     ON (p.id = cr.object_id)
-                JOIN wp_term_taxonomy ct
+                LEFT JOIN wp_term_taxonomy ct
                     ON (ct.term_taxonomy_id = cr.term_taxonomy_id
                         AND ct.taxonomy = 'category')
-                JOIN wp_terms c
+                LEFT JOIN wp_terms c
                     ON (ct.term_id = c.term_id)
-                JOIN wp_term_relationships tr
+                LEFT JOIN wp_term_relationships tr
                     ON (p.id = tr.object_id)
-                JOIN wp_term_taxonomy tt
+                LEFT JOIN wp_term_taxonomy tt
                     ON (tt.term_taxonomy_id = tr.term_taxonomy_id
                         AND tt.taxonomy = 'post_tag')
-                JOIN wp_terms t
+                LEFT JOIN wp_terms t
                     ON (tt.term_id = t.term_id)
                 WHERE
                     p.post_type = 'post'
