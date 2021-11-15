@@ -255,17 +255,36 @@ namespace Goodbye.WordPress
                     new YamlSequenceNode(
                         post.Tags.Select(tag => new YamlScalarNode(tag))));
 
+            if (post.Status != "publish")
+                rootNode.Add("Excluded", "true");
+
             if (!string.IsNullOrEmpty(post.Status))
                 rootNode.Add(
                     nameof(Post.Status),
                     post.Status);
 
             if (post.RedirectFrom.Count > 0)
-                // https://statiq.dev/web/content-and-data/content/redirects
-                rootNode.Add(
-                    nameof(Post.RedirectFrom),
-                    new YamlSequenceNode(
-                        post.RedirectFrom.Select(r => new YamlScalarNode(r))));
+            {
+                var redirects = post.RedirectFrom
+                    .Select(RewriteRedirectFrom)
+                    .Where(r => !string.IsNullOrEmpty(r))
+                    .Select(r => new YamlScalarNode(r))
+                    .ToList();
+
+                if (redirects.Count > 0)
+                    // https://statiq.dev/web/content-and-data/content/redirects
+                    rootNode.Add(
+                        nameof(Post.RedirectFrom),
+                        new YamlSequenceNode(redirects));
+            }
+        }
+
+        public virtual string? RewriteRedirectFrom(string? originalUrl)
+        {
+            if (string.IsNullOrEmpty(originalUrl))
+                return null;
+
+            return originalUrl.TrimStart('/');
         }
 
         public virtual IEnumerable<Uri> GetDownloadResourceUris(
