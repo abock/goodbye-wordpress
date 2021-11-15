@@ -34,4 +34,4 @@ jobs:
         for pkg in _artifacts/*.nupkg; do
           dotnet nuget push --api-key ${{secrets.NUGET_PUSH_TOKEN}} --source https://api.nuget.org/v3/index.json --skip-duplicate --no-symbols true "${pkg}";
         done
-      if: github.event_name != 'pull_request'
+      if: startsWith(github.ref, 'refs/tags/')
