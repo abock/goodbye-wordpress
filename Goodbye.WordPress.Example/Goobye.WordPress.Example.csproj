@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Goodbye.WordPress\Goodbye.WordPress.csproj" />
+  </ItemGroup>
+
+  <Target Name="UpdateReadme" AfterTargets="build">
+    <UpdateReadme />
+  </Target>
+
+  <UsingTask
+    TaskName="UpdateReadme"
+    TaskFactory="RoslynCodeTaskFactory"
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <Task>
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Code Type="Fragment" Language="cs">
+        <![CDATA[
+          var exampleProgram = File.ReadAllText("Program.cs").TrimEnd();
+          var readmePath = Path.Combine("..", "README.md");
+          File.WriteAllText(
+            readmePath,
+            Regex.Replace(
+              File.ReadAllText(readmePath),
+              @"(```csharp\n)(.*)(\n```)",
+              $"$1{exampleProgram}$3",
+              RegexOptions.Singleline));
+        ]]>
+      </Code>
+    </Task>
+  </UsingTask>
+</Project>
