@@ -80,7 +80,7 @@ dotnet add package Goodbye.WordPress
 
 ### Immutability
 
-Note that with the exception of `ConnectionStringBuilder` and `WordPressExporterDelegate`, all types are _immutable_. For example, to transform a `Post` object's content, try `post = post.WithContent(post.Content.Replace("A", "B"))`.
+Note that with the exception of `ConnectionStringBuilder` and `WordPressExporterDelegate`, all types are _immutable_. For example, to transform a `Post` object's content, try `post = post with { Content = post.Content.Replace("A", "B") }`.
 
 ### Example Program.cs
 
