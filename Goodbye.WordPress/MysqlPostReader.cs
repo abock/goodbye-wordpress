@@ -135,6 +135,7 @@ namespace Goodbye.WordPress
                 WHERE
                     p.post_type = 'post'
                 GROUP BY p.id
+                LIMIT 100
             ", connection);
 
             var reader = await command.ExecuteReaderAsync(cancellationToken);
@@ -171,13 +172,11 @@ namespace Goodbye.WordPress
                     updatedDate,
                     postName,
                     reader.GetString("Title"),
-                    reader.GetString("Category") is string category &&
-                        !string.Equals(
-                            category,
-                            "uncategorized",
-                            StringComparison.OrdinalIgnoreCase)
-                        ? category
-                        : null,
+                    reader.GetString("Category")
+                        .Split(";")
+                        .Select(c => c.Trim().ToLowerInvariant())
+                        .Distinct()
+                        .ToImmutableList(),
                     reader.GetString("Tags")
                         .Split(";")
                         .Select(t => t.Trim().ToLowerInvariant())
