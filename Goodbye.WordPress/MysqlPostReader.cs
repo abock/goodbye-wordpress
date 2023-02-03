@@ -109,13 +109,13 @@ namespace Goodbye.WordPress
                     p.post_name AS Name,
                     p.post_title AS Title,
                     COALESCE(
-                        GROUP_CONCAT(DISTINCT c.name SEPARATOR ';'), 
+                        GROUP_CONCAT(DISTINCT c.name SEPARATOR ';'),
                         'NULL'
-                    ) AS Category, 
+                    ) AS Category,
                     COALESCE(
-                        GROUP_CONCAT(DISTINCT t.name SEPARATOR ';'), 
+                        GROUP_CONCAT(DISTINCT t.name SEPARATOR ';'),
                         'NULL'
-                    ) AS Tags, 
+                    ) AS Tags,
                     p.post_content AS Content
                 FROM wp_posts p
                 LEFT JOIN wp_term_relationships cr
@@ -171,17 +171,13 @@ namespace Goodbye.WordPress
                     updatedDate,
                     postName,
                     reader.GetString("Title"),
-                    reader.GetString("Category") is string category &&
-                        !string.Equals(
-                            category,
-                            "uncategorized",
-                            StringComparison.OrdinalIgnoreCase)
-                        ? category
-                        : null,
+                    reader.GetString("Category")
+                        .Split(";")
+                        .Select(c => c.Trim().ToLowerInvariant())
+                        .ToImmutableList(),
                     reader.GetString("Tags")
                         .Split(";")
                         .Select(t => t.Trim().ToLowerInvariant())
-                        .Distinct()
                         .ToImmutableList(),
                     reader.GetString("Content"),
                     originalUrl is null

@@ -244,16 +244,20 @@ namespace Goodbye.WordPress
             AddDateField(nameof(Post.Published), post.Published);
             AddDateField(nameof(Post.Updated), post.Updated);
 
-            if (!string.IsNullOrEmpty(post.Category))
-                rootNode.Add(
-                    nameof(Post.Category),
-                    post.Category);
 
-            if (post.Tags.Count > 0)
-                rootNode.Add(
-                    nameof(Post.Tags),
-                    new YamlSequenceNode(
-                        post.Tags.Select(tag => new YamlScalarNode(tag))));
+            var finalTags = post.Tags
+                .Union(post.Categories)
+                .Where(ct => ct != "null" && ct != "uncategorized");
+
+            if (finalTags.Count() == 0)
+                finalTags = new List<string>() { "untagged" };
+
+            rootNode.Add(
+                nameof(Post.Tags),
+                new YamlSequenceNode(
+                    finalTags.Select(tag => new YamlScalarNode(tag))
+                )
+            );
 
             if (post.Status != "publish")
                 rootNode.Add("Excluded", "true");

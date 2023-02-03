@@ -14,7 +14,7 @@ namespace Goodbye.WordPress
         DateTimeOffset? Updated,
         string Name,
         string Title,
-        string? Category,
+        ImmutableList<string> Categories,
         ImmutableList<string> Tags,
         string Content,
         ImmutableList<string> RedirectFrom,
