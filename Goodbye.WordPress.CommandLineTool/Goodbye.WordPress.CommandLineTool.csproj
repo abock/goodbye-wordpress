@@ -10,7 +10,7 @@
     <PackageDescription>
       $(PackageDescription)
       
-      Note, there is a .NET 6.0 library ("Goodbye.WordPress") that
+      Note, there is a .NET 7.0 library ("Goodbye.WordPress") that
       can be integrated easily into a new .NET console application that
       allows heavy customization through overriding pieces of the export
       pipeline in WordPressExporterDelegate.
@@ -23,5 +23,7 @@
 
   <ItemGroup>
     <PackageReference Include="Mono.Options" Version="6.12.0.148" />
+    <PackageReference Include="TunnelVisionLabs.ReferenceAssemblyAnnotator" Version="1.0.0-alpha.160" PrivateAssets="all" />
+    <PackageDownload Include="Microsoft.NETCore.App.Ref" Version="[5.0.0]" />
   </ItemGroup>
 </Project>

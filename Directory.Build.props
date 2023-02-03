@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -8,7 +8,7 @@
   <PropertyGroup>
     <PackageOutputPath>$(MSBuildThisFileDirectory)_artifacts</PackageOutputPath>
     <Authors>Aaron Bockover</Authors>
-    <Copyright>Copyright 2020-2021 Aaron Bockover</Copyright>
+    <Copyright>Copyright 2020-2023 Aaron Bockover</Copyright>
     <RepositoryUrl>https://github.com/abock/goodbye-wordpress</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>
